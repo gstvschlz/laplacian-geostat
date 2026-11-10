@@ -1,4 +1,4 @@
-/* Theme follows gstvschlz.com: tokens, type, header, footer and controls. */
+/* Theme follows gstvschlz.com: black, white and grey only; tokens, type, header, footer and controls. */
 
 @font-face {
   font-family: "Crimson Pro";
@@ -21,10 +21,9 @@
   --color-muted: oklch(42% 0 0);
   --color-rule: oklch(85% 0 0);
   --color-code: oklch(97% 0 0);
-  /* Canvas only: grid lines and the two data hues of the diverging map. */
+  /* Canvas only: grid lines, and the grey for negative Laplacian bars. */
   --color-grid: oklch(92% 0 0);
-  --color-blue: #2a78d6;
-  --color-orange: #eb6834;
+  --color-neg: oklch(68% 0 0);
   --font-text: "Crimson Pro", Georgia, "Times New Roman", serif;
   --font-mono: ui-monospace, "Cascadia Mono", Consolas, "Liberation Mono", monospace;
   --text-sm: 0.9rem;
@@ -51,8 +50,7 @@
     --color-rule: oklch(32% 0 0);
     --color-code: oklch(19% 0 0);
     --color-grid: oklch(22% 0 0);
-    --color-blue: #4c96f0;
-    --color-orange: #f57d4d;
+    --color-neg: oklch(48% 0 0);
     color-scheme: dark;
   }
 }
@@ -63,8 +61,7 @@
   --color-rule: oklch(32% 0 0);
   --color-code: oklch(19% 0 0);
   --color-grid: oklch(22% 0 0);
-  --color-blue: #4c96f0;
-  --color-orange: #f57d4d;
+  --color-neg: oklch(48% 0 0);
   color-scheme: dark;
 }
 
@@ -133,6 +130,13 @@ header.site .name { text-decoration: none; font-weight: 600; white-space: nowrap
 header.site nav { display: flex; gap: var(--space-md); }
 header.site nav a { text-decoration: none; color: var(--color-muted); white-space: nowrap; }
 header.site nav a:hover { color: var(--color-ink); }
+header.site nav .lang {
+  font-variant: normal;
+  font-size: var(--text-sm);
+  letter-spacing: 0.08em;
+  padding-left: var(--space-md);
+  border-left: var(--rule);
+}
 
 footer.site {
   margin-top: var(--space-xl);
@@ -283,7 +287,8 @@ canvas { display: block; width: 100%; touch-action: none; }
   flex: 1 1 120px;
   max-width: 240px;
   height: 8px;
-  background: linear-gradient(90deg, #123a6b 0%, #2a78d6 28%, #ececea 50%, #eb6834 72%, #7a2c0e 100%);
+  background: linear-gradient(90deg, #101010, #fafafa);
+  border: var(--rule);
 }
 .hint { font-size: var(--text-sm); color: var(--color-muted); margin: var(--space-sm) 0 0; }
 

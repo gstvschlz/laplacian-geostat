@@ -1,12 +1,12 @@
-// Diverging colormap matching src/lapgeo/style.py:
-// ["#123a6b", "#2a78d6", "#ececea", "#eb6834", "#7a2c0e"]
+// Grey scale, black (low) to white (high), to match the site's black-white-grey theme.
+// The names say "diverging" because u runs over [-1, 1], centred on mid grey.
 
 const STOPS = [
-  [0x12, 0x3a, 0x6b],
-  [0x2a, 0x78, 0xd6],
-  [0xec, 0xec, 0xea],
-  [0xeb, 0x68, 0x34],
-  [0x7a, 0x2c, 0x0e]
+  [0x10, 0x10, 0x10],
+  [0x58, 0x58, 0x58],
+  [0x9a, 0x9a, 0x9a],
+  [0xd2, 0xd2, 0xd2],
+  [0xfa, 0xfa, 0xfa]
 ];
 
 /**
@@ -79,11 +79,13 @@ export function renderGridCanvas(canvas, field, stride, viewW, viewH, {
       if (x >= viewW || y >= viewH) continue;
       const cx = (x + 0.5) * scale;
       const cy = (y + 0.5) * scale;
-      ctx.fillStyle = divergingHex(values[k] / limit);
-      ctx.strokeStyle = "#0b0b0b";
+      // A small black dot with a white rim marks a sample on any grey; the cell keeps its value.
       ctx.beginPath();
-      ctx.arc(cx, cy, Math.max(2.1, scale * 0.42), 0, Math.PI * 2);
+      ctx.arc(cx, cy, Math.max(1.6, scale * 0.2), 0, Math.PI * 2);
+      ctx.fillStyle = "#000000";
       ctx.fill();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "#ffffff";
       ctx.stroke();
     }
   }

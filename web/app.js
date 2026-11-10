@@ -8,6 +8,7 @@ import {
 } from "./laplacian.js";
 import { divergingHex, renderGridCanvas } from "./colormap.js";
 import { load as loadWalker, makeCase } from "./walker.js";
+import { t as T, fmt } from "./i18n.js";
 
 function themeColors() {
   const s = getComputedStyle(document.documentElement);
@@ -16,8 +17,9 @@ function themeColors() {
     ink: s.getPropertyValue("--color-ink").trim() || "#0b0b0b",
     muted: s.getPropertyValue("--color-muted").trim() || "#52514e",
     grid: s.getPropertyValue("--color-grid").trim() || "#e4e3df",
-    blue: s.getPropertyValue("--color-blue").trim() || "#2a78d6",
-    orange: s.getPropertyValue("--color-orange").trim() || "#eb6834"
+    line: s.getPropertyValue("--color-ink").trim() || "#0b0b0b",
+    pos: s.getPropertyValue("--color-ink").trim() || "#0b0b0b",
+    neg: s.getPropertyValue("--color-neg").trim() || "#9a9a9a"
   };
 }
 
@@ -101,9 +103,9 @@ function initStep1() {
     ctx.fillStyle = c.muted;
     ctx.font = "italic 14px \"Crimson Pro\", Georgia, serif";
     ctx.textAlign = "right";
-    ctx.textAlign = "left"; ctx.fillText("value", 2, topY - 4); ctx.textAlign = "right";
+    ctx.textAlign = "left"; ctx.fillText(T.value, 2, topY - 4); ctx.textAlign = "right";
     ctx.fillText("0", padL - 6, valY(0) + 4);
-    ctx.textAlign = "left"; ctx.fillText("val − avg", 2, botY - 4); ctx.textAlign = "right";
+    ctx.textAlign = "left"; ctx.fillText(T.valMinusAvg, 2, botY - 4); ctx.textAlign = "right";
     ctx.fillText("0", padL - 6, lapZeroY + 4);
 
     const disc = discrepancy1D(z);
@@ -121,7 +123,7 @@ function initStep1() {
     // Highlight active interior cell's neighbour chord and difference bar
     const hi = Math.max(1, Math.min(N - 2, activeIdx));
     const nbMean = 0.5 * (z[hi - 1] + z[hi + 1]);
-    ctx.strokeStyle = c.blue;
+    ctx.strokeStyle = c.line;
     ctx.lineWidth = 2;
     ctx.setLineDash([4, 3]);
     ctx.beginPath();
@@ -131,7 +133,7 @@ function initStep1() {
     ctx.setLineDash([]);
 
     // Vertical difference bar on profile
-    ctx.strokeStyle = disc[hi] >= 0 ? c.orange : c.blue;
+    ctx.strokeStyle = disc[hi] >= 0 ? c.pos : c.neg;
     ctx.lineWidth = 3.5;
     ctx.beginPath();
     ctx.moveTo(cellX(hi), valY(nbMean));
@@ -140,7 +142,7 @@ function initStep1() {
 
     // Midpoint hollow circle
     ctx.fillStyle = c.paper;
-    ctx.strokeStyle = c.blue;
+    ctx.strokeStyle = c.line;
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(cellX(hi), valY(nbMean), 4.5, 0, Math.PI * 2);
@@ -157,7 +159,7 @@ function initStep1() {
 
       // Bottom bar
       const bh = Math.max(-botH * 0.48, Math.min(botH * 0.48, (d / 1.2) * (botH * 0.48)));
-      ctx.fillStyle = Math.abs(d) < 0.015 ? c.grid : (d > 0 ? c.orange : c.blue);
+      ctx.fillStyle = Math.abs(d) < 0.015 ? c.grid : (d > 0 ? c.pos : c.neg);
       if (bh >= 0) {
         ctx.fillRect(x - barW / 2, lapZeroY - bh, barW, Math.max(1.5, bh));
       } else {
@@ -166,8 +168,8 @@ function initStep1() {
 
       // Top node
       ctx.fillStyle = col;
-      ctx.strokeStyle = i === hi ? c.ink : c.paper;
-      ctx.lineWidth = i === hi ? 2 : 1.2;
+      ctx.strokeStyle = c.ink;
+      ctx.lineWidth = i === hi ? 2 : 1;
       ctx.beginPath();
       ctx.arc(x, y, i === hi ? 6.5 : 5, 0, Math.PI * 2);
       ctx.fill();
@@ -175,8 +177,8 @@ function initStep1() {
     }
 
     const diff = z[hi] - nbMean;
-    const tag = Math.abs(diff) < 0.02 ? "flat / straight slope (≈ 0)" : (diff > 0 ? "peak (+)" : "pit (−)");
-    readout.textContent = `cell ${hi}: value ${z[hi].toFixed(2)} | neighbour avg ${nbMean.toFixed(2)} | diff ${diff >= 0 ? "+" : ""}${diff.toFixed(2)} → ${tag}`;
+    const tag = Math.abs(diff) < 0.02 ? T.flat : (diff > 0 ? T.peak : T.pit);
+    readout.textContent = T.step1(hi, z[hi], nbMean, diff, tag);
   }
 
   let dragging = false;
@@ -280,11 +282,11 @@ function initStep2() {
     ctx.fillStyle = c.muted;
     ctx.font = "italic 14px \"Crimson Pro\", Georgia, serif";
     ctx.textAlign = "right";
-    ctx.textAlign = "left"; ctx.fillText("estimate", 2, topY - 4); ctx.textAlign = "right";
-    ctx.textAlign = "left"; ctx.fillText("Laplacian", 2, botY - 4); ctx.textAlign = "right";
+    ctx.textAlign = "left"; ctx.fillText(T.estimate, 2, topY - 4); ctx.textAlign = "right";
+    ctx.textAlign = "left"; ctx.fillText(T.laplacian, 2, botY - 4); ctx.textAlign = "right";
 
     // Current estimate curve
-    ctx.strokeStyle = c.blue;
+    ctx.strokeStyle = c.line;
     ctx.lineWidth = 2.2;
     ctx.beginPath();
     for (let i = 0; i < N; i++) {
@@ -304,7 +306,7 @@ function initStep2() {
       if (!isHeld && Math.abs(d) > maxFreeLap) maxFreeLap = Math.abs(d);
 
       const bh = Math.max(-botH * 0.46, Math.min(botH * 0.46, (d / 0.6) * (botH * 0.46)));
-      ctx.fillStyle = d >= 0 ? c.orange : c.blue;
+      ctx.fillStyle = d >= 0 ? c.pos : c.neg;
       if (Math.abs(d) > 0.002) {
         if (bh >= 0) ctx.fillRect(x - barW / 2, lapZeroY - bh, barW, bh);
         else ctx.fillRect(x - barW / 2, lapZeroY, barW, -bh);
@@ -312,14 +314,14 @@ function initStep2() {
 
       ctx.beginPath();
       ctx.arc(x, valY(z[i]), isHeld ? 6.5 : 3.2, 0, Math.PI * 2);
-      ctx.fillStyle = isHeld ? c.ink : c.blue;
+      ctx.fillStyle = isHeld ? c.ink : c.muted;
       ctx.strokeStyle = c.paper;
       ctx.lineWidth = 1.5;
       ctx.fill();
       if (isHeld) ctx.stroke();
     }
 
-    readout.textContent = `sweeps: ${sweeps} | held data: ${held.size} | max free |Laplacian|: ${maxFreeLap.toFixed(4)}`;
+    readout.textContent = T.step2(sweeps, held.size, maxFreeLap);
   }
 
   let draggingCell = null;
@@ -368,7 +370,7 @@ function initStep2() {
   playBtn.addEventListener("click", () => {
     playing = !playing;
     playBtn.setAttribute("aria-pressed", String(playing));
-    playBtn.textContent = playing ? "Pause" : "Play";
+    playBtn.textContent = playing ? T.pause : T.play;
   });
 
   stepBtn.addEventListener("click", () => stepOnce(1));
@@ -403,7 +405,7 @@ function initStep3() {
 
   function draw() {
     const kappa = parseFloat(slider.value);
-    valSpan.textContent = kappa.toFixed(2);
+    valSpan.textContent = fmt(kappa, 2);
 
     const dataIndices = Array.from(held.keys());
     const dataValues = Array.from(held.values());
@@ -432,11 +434,11 @@ function initStep3() {
     ctx.fillStyle = c.muted;
     ctx.font = "italic 14px \"Crimson Pro\", Georgia, serif";
     ctx.textAlign = "right";
-    ctx.fillText("mean = 0", w - padR - 4, valY(0) - 6);
+    ctx.fillText(T.mean0, w - padR - 4, valY(0) - 6);
 
     // Reference kappa=0 straight-line interpolation
-    ctx.strokeStyle = c.grid;
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = c.neg;
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
     for (let i = 0; i < N; i++) {
       const x = cellX(i), y = valY(linear[i]);
@@ -445,7 +447,7 @@ function initStep3() {
     ctx.stroke();
 
     // Sagged curve for current kappa
-    ctx.strokeStyle = c.blue;
+    ctx.strokeStyle = c.line;
     ctx.lineWidth = 2.6;
     ctx.beginPath();
     for (let i = 0; i < N; i++) {
@@ -465,9 +467,9 @@ function initStep3() {
       ctx.stroke();
     }
 
-    const factor = (2 / (2 + kappa * kappa)).toFixed(3);
-    const rangeText = kappa < 0.02 ? "∞ (no sill, linear)" : `≈ ${(3 / kappa).toFixed(1)} cells (3/κ)`;
-    readout.textContent = `rule: sum of 2 neighbours / (2 + κ²) = ${factor} × avg | practical range ${rangeText}`;
+    const factor = fmt(2 / (2 + kappa * kappa), 3);
+    const rangeText = kappa < 0.02 ? T.rangeInf : T.rangeCells(3 / kappa);
+    readout.textContent = T.step3(factor, rangeText);
   }
 
   let draggingIdx = null;
@@ -503,10 +505,14 @@ function initStep3() {
 async function initWalkerSteps() {
   let walkerCase;
   try {
-    const raw = await loadWalker("data/walker-lake");
+    const raw = await loadWalker(new URL("../data/walker-lake", import.meta.url).href);
     walkerCase = makeCase(raw, { n: 64 });
   } catch (err) {
     console.error("Failed to load Walker Lake CSVs:", err);
+    for (const id of ["readout-step4", "readout-step6"]) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = T.loadFailed;
+    }
     return;
   }
 
@@ -542,10 +548,10 @@ async function initWalkerSteps() {
     if (showLap4) {
       const lap = laplacian2D(z4, N, N, { periodic: true });
       renderGridCanvas(canvasEst, lap, N, w, h, { limit: 1.5, samples: { cells, values } });
-      labelLeft4.textContent = `Laplacian Lz (sweep ${sweeps4})`;
+      labelLeft4.textContent = T.lapMap(sweeps4);
     } else {
       renderGridCanvas(canvasEst, z4, N, w, h, { limit: 2.5, samples: { cells, values } });
-      labelLeft4.textContent = `Relaxed estimate (sweep ${sweeps4})`;
+      labelLeft4.textContent = T.relaxed(sweeps4);
     }
     // Compute RMSE against exhaustive truth in normal-score units over the w x h window
     let mse = 0, count = 0;
@@ -557,26 +563,26 @@ async function initWalkerSteps() {
       }
     }
     const rmse = Math.sqrt(mse / count);
-    readout4.textContent = `sweeps: ${sweeps4} | ${cells.length} occupied blocks | normal-score RMSE vs truth: ${rmse.toFixed(2)}`;
+    readout4.textContent = T.step4(sweeps4, cells.length, rmse);
   }
 
   btnPlay4.addEventListener("click", () => {
     playing4 = !playing4;
     btnPlay4.setAttribute("aria-pressed", String(playing4));
-    btnPlay4.textContent = playing4 ? "Pause" : "Play";
+    btnPlay4.textContent = playing4 ? T.pause : T.play;
   });
   btnReset4.addEventListener("click", reset4);
   btnLap4.addEventListener("click", () => {
     showLap4 = !showLap4;
     btnLap4.setAttribute("aria-pressed", String(showLap4));
-    btnLap4.textContent = showLap4 ? "Showing: Laplacian Lz" : "Show Laplacian map";
+    btnLap4.textContent = showLap4 ? T.showingLap : T.showLap;
     draw4();
   });
   sliderK4.addEventListener("input", () => {
-    valK4.textContent = parseFloat(sliderK4.value).toFixed(2);
+    valK4.textContent = fmt(parseFloat(sliderK4.value), 2);
     playing4 = true;
     btnPlay4.setAttribute("aria-pressed", "true");
-    btnPlay4.textContent = "Pause";
+    btnPlay4.textContent = T.pause;
   });
 
   // --- Step 6: Conditional simulation ---
@@ -598,7 +604,7 @@ async function initWalkerSteps() {
 
   function recomputeStep6(initialSweeps = 60) {
     const kappa = parseFloat(sliderK6.value);
-    valK6.textContent = kappa.toFixed(2);
+    valK6.textContent = fmt(kappa, 2);
     // Scale white noise so the stationary variance of (kappa^2 I + L) z = w is ~1
     const amp = Math.sqrt(4 * Math.PI) * Math.max(kappa, 0.08) * 1.35;
     relax2D(zKrig, N, N, {
@@ -626,15 +632,15 @@ async function initWalkerSteps() {
     renderGridCanvas(canvasKrig, zKrig, N, w, h, { limit: 2.5, samples: { cells, values } });
     renderGridCanvas(canvasCond, zCond, N, w, h, { limit: 2.5, samples: { cells, values } });
     labelRight6.textContent = noiseOn6
-      ? `Conditional simulation (seed #${seed6})`
-      : "Noise off → collapses to kriging estimate";
-    readout6.textContent = `data held: ${cells.length} blocks | noise: ${noiseOn6 ? "ON" : "OFF"} | sweeps: ${sweeps6}`;
+      ? T.condSim(seed6)
+      : T.noiseOffLabel;
+    readout6.textContent = T.step6(cells.length, noiseOn6, sweeps6);
   }
 
   btnNoise6.addEventListener("click", () => {
     noiseOn6 = !noiseOn6;
     btnNoise6.setAttribute("aria-pressed", String(noiseOn6));
-    btnNoise6.textContent = noiseOn6 ? "Noise: ON" : "Noise: OFF (Kriging)";
+    btnNoise6.textContent = noiseOn6 ? T.noiseOn : T.noiseOff;
     sweeps6 = 0;
     recomputeStep6(80);
   });
@@ -644,7 +650,7 @@ async function initWalkerSteps() {
     noise6 = mulberry32(seed6).normalArray(N * N);
     noiseOn6 = true;
     btnNoise6.setAttribute("aria-pressed", "true");
-    btnNoise6.textContent = "Noise: ON";
+    btnNoise6.textContent = T.noiseOn;
     sweeps6 = 0;
     recomputeStep6(80);
   });
@@ -720,7 +726,7 @@ function initStep5() {
 
   function stepSim(count) {
     const kappa = parseFloat(sliderK.value);
-    valK.textContent = kappa.toFixed(2);
+    valK.textContent = fmt(kappa, 2);
     relax2D(z, N, N, {
       kappa,
       sweeps: count,
@@ -731,7 +737,7 @@ function initStep5() {
     sweeps += count;
     renderNormalized(canvasSim, z);
     const rangeCells = Math.round(4 / kappa);
-    readout.textContent = `seed #${seed} | sweeps: ${sweeps} | Matérn range ≈ 4/κ = ${rangeCells} cells`;
+    readout.textContent = T.step5(seed, sweeps, rangeCells);
   }
 
   btnSeed.addEventListener("click", () => {
@@ -739,20 +745,20 @@ function initStep5() {
     noise = mulberry32(seed).normalArray(N * N);
     playing = true;
     btnPlay.setAttribute("aria-pressed", "true");
-    btnPlay.textContent = "Pause";
+    btnPlay.textContent = T.pause;
     restart();
   });
 
   btnPlay.addEventListener("click", () => {
     playing = !playing;
     btnPlay.setAttribute("aria-pressed", String(playing));
-    btnPlay.textContent = playing ? "Pause" : "Play";
+    btnPlay.textContent = playing ? T.pause : T.play;
   });
 
   sliderK.addEventListener("input", () => {
     playing = true;
     btnPlay.setAttribute("aria-pressed", "true");
-    btnPlay.textContent = "Pause";
+    btnPlay.textContent = T.pause;
     stepSim(6);
   });
 

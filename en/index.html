@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>What is the Laplacian?</title>
+  <link rel="alternate" hreflang="pt-BR" href="https://gstvschlz.com/laplacian/">
+  <link rel="alternate" hreflang="en" href="https://gstvschlz.com/laplacian/en/">
+  <meta name="description" content="An interactive explainer of the Laplacian in geostatistical estimation and simulation, on the Walker Lake data.">
+  <script>try{var t=localStorage.getItem("theme");t&&(document.documentElement.dataset.theme=t)}catch{}</script>
+  <link rel="preload" href="../fonts/crimson-pro-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <header class="site">
+    <a class="name" href="https://gstvschlz.com/en/">Gustavo Pretto Scholze</a>
+    <nav aria-label="Main">
+      <a href="https://gstvschlz.com/en/notes/">Notes</a>
+      <a href="https://gstvschlz.com/en/about/">About</a>
+      <a class="lang" href="../" hreflang="pt-BR" lang="pt-BR" aria-label="Language: PT">PT</a>
+    </nav>
+  </header>
+
+  <main class="page-wrap">
+    <section class="doc-head">
+      <h1>What is the Laplacian?</h1>
+      <p class="meta">an interactive explainer · Walker Lake data</p>
+    </section>
+    <p class="lede">
+      One local rule connects spatial curvature, kriging estimation, variogram range, and conditional simulation: compare each cell to the average of its neighbours.
+    </p>
+    <nav class="step-nav" aria-label="Six steps">
+      <a href="#step-1">1 operator</a>
+      <a href="#step-2">2 estimation</a>
+      <a href="#step-3">3 range κ</a>
+      <a href="#step-4">4 on a map</a>
+      <a href="#step-5">5 simulation</a>
+      <a href="#step-6">6 conditional</a>
+    </nav>
+
+    <!-- STEP 1 -->
+    <section id="step-1" class="step-section">
+      <div class="step-header">
+        <span class="step-num">step 1 of 6</span>
+        <h2>The operator: value minus neighbour average</h2>
+        <p class="step-copy">
+          The discrete Laplacian measures how much a cell sticks out from its immediate neighbours. On a flat profile or a straight slope, every interior cell equals the average of its left and right neighbours, so its Laplacian is <code>0</code>. On a peak it is positive and its bar points up in solid ink; in a pit it is negative and its bar points down in grey.
+        </p>
+      </div>
+      <div class="widget-card">
+        <div class="controls">
+          <button type="button" class="btn" data-step1-preset="peak">Peak &amp; Pit</button>
+          <button type="button" class="btn" data-step1-preset="slope">Straight Slope (L = 0)</button>
+          <button type="button" class="btn" data-step1-preset="flat">Flat (L = 0)</button>
+          <span class="readout" id="readout-step1"></span>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="canvas-step1" class="canvas-1d"></canvas>
+        </div>
+        <div class="legend-bar">
+          <span>Points: dark = pit (−), light = peak (+). Bars: solid up = peak, grey down = pit.</span>
+          <span style="margin-left:auto">Drag any point up or down</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 2 -->
+    <section id="step-2" class="step-section">
+      <div class="step-header">
+        <span class="step-num">step 2 of 6</span>
+        <h2>Estimation: hold the data, make the Laplacian zero</h2>
+        <p class="step-copy">
+          Suppose you only know the value at a few sample locations. If you hold those data points fixed and repeatedly replace every other cell by the average of its two neighbours, the Laplacian decays to zero everywhere else. The profile settles into straight lines between the samples—kriging with a linear variogram.
+        </p>
+      </div>
+      <div class="widget-card">
+        <div class="controls">
+          <button type="button" id="btn-step2-play" class="btn primary" aria-pressed="false">Play</button>
+          <button type="button" id="btn-step2-step" class="btn">Step (1 sweep)</button>
+          <button type="button" id="btn-step2-reset" class="btn">Reset to zero</button>
+          <span class="readout" id="readout-step2"></span>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="canvas-step2" class="canvas-1d"></canvas>
+        </div>
+        <p class="hint">Click or drag on the upper plot to place or move held data points. Double-click or Shift-click a held point to remove it.</p>
+      </div>
+    </section>
+
+    <!-- STEP 3 -->
+    <section id="step-3" class="step-section">
+      <div class="step-header">
+        <span class="step-num">step 3 of 6</span>
+        <h2>Adding κ: sagging toward the mean</h2>
+        <p class="step-copy">
+          Instead of dividing the sum of the two neighbours by <code>2</code>, divide by <code>2 + κ²</code>. Now each step multiplies the neighbour average by a fraction slightly below one, pulling the estimate toward the background mean (zero) away from the data. The parameter <code>κ</code> sets the correlation range: this is simple kriging with an exponential variogram.
+        </p>
+      </div>
+      <div class="widget-card">
+        <div class="controls">
+          <label class="control-group" for="slider-step3-kappa">
+            <span>κ (inverse range): <strong id="val-step3-kappa">0.18</strong></span>
+            <input type="range" id="slider-step3-kappa" min="0" max="0.6" step="0.01" value="0.18">
+          </label>
+          <span class="readout" id="readout-step3"></span>
+        </div>
+        <div class="canvas-wrap">
+          <canvas id="canvas-step3" class="canvas-1d"></canvas>
+        </div>
+        <p class="hint">Drag the κ slider to watch the estimate sag from straight lines (grey) toward the mean. Click or drag on the plot to move or add samples.</p>
+      </div>
+    </section>
+
+    <!-- STEP 4 -->
+    <section id="step-4" class="step-section">
+      <div class="step-header">
+        <span class="step-num">step 4 of 6</span>
+        <h2>On a map: Walker Lake</h2>
+        <p class="step-copy">
+          On a 2-D grid, each cell has 4 neighbours (north, south, east, west). Holding the 470 Walker Lake <code>V</code> samples (normal-scored in 8×8 m blocks) and repeatedly replacing every free cell by the sum of its 4 neighbours divided by <code>4 + κ²</code> relaxes into the simple kriging map. Compare the smooth estimate on the left with the exhaustive truth on the right.
+        </p>
+      </div>
+      <div class="widget-card">
+        <div class="controls">
+          <button type="button" id="btn-step4-play" class="btn primary" aria-pressed="true">Pause</button>
+          <button type="button" id="btn-step4-reset" class="btn">Restart sweeps</button>
+          <button type="button" id="btn-step4-lap" class="btn" aria-pressed="false">Show Laplacian map</button>
+          <label class="control-group" for="slider-step4-kappa">
+            <span>κ: <strong id="val-step4-kappa">0.12</strong></span>
+            <input type="range" id="slider-step4-kappa" min="0.02" max="0.5" step="0.02" value="0.12">
+          </label>
+          <span class="readout" id="readout-step4">Loading Walker Lake…</span>
+        </div>
+        <div class="map-grid">
+          <div class="map-panel">
+            <div class="map-panel-title">
+              <span id="label-step4-left">Relaxed estimate</span>
+              <span>dots = sample blocks</span>
+            </div>
+            <canvas id="canvas-step4-est" class="map-canvas"></canvas>
+          </div>
+          <div class="map-panel">
+            <div class="map-panel-title">
+              <span>Exhaustive truth (exhaustive.csv)</span>
+              <span>260 × 300 m</span>
+            </div>
+            <canvas id="canvas-step4-truth" class="map-canvas"></canvas>
+          </div>
+        </div>
+        <div class="legend-bar">
+          <span>Low (−2.5σ)</span>
+          <span class="legend-swatch"></span>
+          <span>High (+2.5σ)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 5 -->
+    <section id="step-5" class="step-section">
+      <div class="step-header">
+        <span class="step-num">step 5 of 6</span>
+        <h2>Simulation: feeding the operator with white noise</h2>
+        <p class="step-copy">
+          Kriging is smoother than reality because it zeroes the Laplacian away from data. What if we instead set each cell's Laplacian to a random number drawn from white noise? Solving <code>(κ² I + L) z = noise</code> by the exact same neighbour relaxation (adding each cell's fixed random number to its 4-neighbour sum before dividing by <code>4 + κ²</code>) filters white noise into a spatial field with a Matérn variogram.
+        </p>
+      </div>
+      <div class="widget-card">
+        <div class="controls">
+          <button type="button" id="btn-step5-seed" class="btn primary">New seed</button>
+          <button type="button" id="btn-step5-play" class="btn" aria-pressed="true">Pause</button>
+          <label class="control-group" for="slider-step5-kappa">
+            <span>κ: <strong id="val-step5-kappa">0.16</strong></span>
+            <input type="range" id="slider-step5-kappa" min="0.05" max="0.45" step="0.01" value="0.16">
+          </label>
+          <span class="readout" id="readout-step5"></span>
+        </div>
+        <div class="map-grid">
+          <div class="map-panel">
+            <div class="map-panel-title">
+              <span>Input: independent white noise w</span>
+              <span>one random draw per cell</span>
+            </div>
+            <canvas id="canvas-step5-noise" class="sim-canvas"></canvas>
+          </div>
+          <div class="map-panel">
+            <div class="map-panel-title">
+              <span>Solution z of (κ² I + L) z = w</span>
+              <span>filtered spatial field</span>
+            </div>
+            <canvas id="canvas-step5-sim" class="sim-canvas"></canvas>
+          </div>
+        </div>
+        <div class="legend-bar">
+          <span>Low (−2.4σ)</span>
+          <span class="legend-swatch"></span>
+          <span>High (+2.4σ)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 6 -->
+    <section id="step-6" class="step-section">
+      <div class="step-header">
+        <span class="step-num">step 6 of 6</span>
+        <h2>Both at once: conditional simulation</h2>
+        <p class="step-copy">
+          Hold the Walker Lake sample blocks at their measured values <em>and</em> feed white noise into the free cells. Every realization honours the hard data and reproduces the spatial texture away from the samples. Toggle the noise off and the field collapses back to the smooth kriging estimate.
+        </p>
+      </div>
+      <div class="widget-card">
+        <div class="controls">
+          <button type="button" id="btn-step6-noise" class="btn primary" aria-pressed="true">Noise: ON</button>
+          <button type="button" id="btn-step6-seed" class="btn">New seed</button>
+          <label class="control-group" for="slider-step6-kappa">
+            <span>κ: <strong id="val-step6-kappa">0.14</strong></span>
+            <input type="range" id="slider-step6-kappa" min="0.04" max="0.4" step="0.02" value="0.14">
+          </label>
+          <span class="readout" id="readout-step6"></span>
+        </div>
+        <div class="map-grid">
+          <div class="map-panel">
+            <div class="map-panel-title">
+              <span>No noise: simple kriging estimate</span>
+              <span>smooth between samples</span>
+            </div>
+            <canvas id="canvas-step6-krig" class="map-canvas"></canvas>
+          </div>
+          <div class="map-panel">
+            <div class="map-panel-title">
+              <span id="label-step6-right">Conditional simulation</span>
+              <span>honours data + texture</span>
+            </div>
+            <canvas id="canvas-step6-sim" class="map-canvas"></canvas>
+          </div>
+        </div>
+        <div class="legend-bar">
+          <span>Low (−2.5σ)</span>
+          <span class="legend-swatch"></span>
+          <span>High (+2.5σ)</span>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer-summary">
+      The model behind all six steps is a Gaussian Markov random field with precision (inverse covariance) <code>Q = τ(κ² I + L)^α</code>, where <code>L</code> is the graph Laplacian, <code>κ</code> sets the inverse range, <code>α</code> sets the smoothness, and <code>τ</code> scales the variance (Lindgren, Rue &amp; Lindström, 2011).
+    </footer>
+  </main>
+
+  <footer class="site">
+    <p>2026 · Gustavo Pretto Scholze</p>
+    <p class="theme" role="group" aria-label="theme">theme: <button type="button" data-theme-set>system</button> · <button type="button" data-theme-set="light">light</button> · <button type="button" data-theme-set="dark">dark</button></p>
+  </footer>
+
+  <script type="module" src="../web/app.js"></script>
+</body>
+</html>

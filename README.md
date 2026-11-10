@@ -37,8 +37,10 @@ mise run verify    # lint, then the theory checks
 
 ## Layout
 
-- `index.html`, `style.css`, `web/` — the six-step explainer, no build step;
-  published by GitHub Pages from `main`. Theme and fonts follow gstvschlz.com.
+- `index.html` (pt-BR), `en/index.html` (English), `style.css`, `web/` — the
+  six-step explainer, no build step; published by GitHub Pages from `main`.
+  Black, white and grey only; theme and fonts follow gstvschlz.com. Text drawn
+  by the scripts is in `web/i18n.js`.
 - `test/` — Node.js unit checks for `web/laplacian.js` and `web/walker.js`.
 - `animate.py` — the six scenes.
 - `src/lapgeo/` — the Laplacian, the precision, draws, conditioning and the
