@@ -192,7 +192,7 @@ def simple_kriging(cov, data_index, data_values):
     return weights @ np.asarray(data_values, dtype=float), weights
 
 
-def relax(shape, kappa, data_index, data_values, sweeps, tau=1.0, rng=None, start=None):
+def relax(shape, kappa, data_index, data_values, sweeps, tau=1.0, rng=None, start=None, source=None):
     """Cellular rule on a 2-D torus with ``α = 1``.
 
     Each sweep replaces every free cell by the sum of its four neighbours
@@ -200,6 +200,8 @@ def relax(shape, kappa, data_index, data_values, sweeps, tau=1.0, rng=None, star
     ``rng`` the rule converges to the kriging mean (it is Gauss-Seidel on
     ``Q_uu m = -Q_ud z_d``). With ``rng`` it adds noise of variance
     ``1 / (τ (κ² + 4))`` and becomes a Gibbs sampler of the conditional field.
+    With ``source`` (one fixed number per cell, added to the sum of the
+    neighbours) it converges to the solution of ``(κ² I + L) z = source``.
     """
     ny, nx = shape
     if ny % 2 or nx % 2:
@@ -216,7 +218,7 @@ def relax(shape, kappa, data_index, data_values, sweeps, tau=1.0, rng=None, star
         for colour in (0, 1):
             mask = free & ((iy + ix) % 2 == colour)
             nb = np.roll(z, 1, 0) + np.roll(z, -1, 0) + np.roll(z, 1, 1) + np.roll(z, -1, 1)
-            new = nb / diag
+            new = nb / diag if source is None else (nb + source) / diag
             if rng is not None:
                 new = new + rng.standard_normal(shape) / np.sqrt(tau * diag)
             z[mask] = new[mask]

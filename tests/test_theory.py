@@ -1,4 +1,4 @@
-"""Every numbered claim of the chapters, as a check that can be rerun."""
+"""The statements the animation makes, and the theory behind them, as checks that can be rerun."""
 
 import numpy as np
 import pytest
@@ -103,7 +103,7 @@ def test_conditioning_with_the_precision_is_simple_kriging():
 
 def test_draws_reproduce_the_variogram_and_the_data():
     shape, kappa = (128, 128), 0.25
-    tau = 1 / lg.matern_variance(kappa, 2, 2)
+    tau = lg.matern_variance(kappa, 2, 2)
     rng = np.random.default_rng(4)
     exact = lg.covariance(shape, kappa, 2, tau)
     h = np.array([1, 2, 4, 8, 16])
@@ -159,6 +159,26 @@ def test_relaxation_converges_to_the_kriging_mean():
     q = lg.precision(shape, 0.3, 1)
     relaxed = lg.relax(shape, 0.3, data, values, 400)
     assert np.allclose(relaxed.ravel(), lg.conditional_mean(q, data, values), atol=1e-10)
+
+
+def test_rule_fed_with_noise_solves_the_spde():
+    shape, kappa = (32, 32), 0.3
+    noise = np.random.default_rng(9).standard_normal(shape)
+    relaxed = lg.relax(shape, kappa, [], [], 600, source=noise)
+    assert np.allclose(lg.precision(shape, kappa, 1) @ relaxed.ravel(), noise.ravel(), atol=1e-9)
+
+
+def test_mixing_two_draws_by_cos_and_sin_keeps_the_data():
+    rng = np.random.default_rng(10)
+    shape, kappa = (24, 24), 0.3
+    q = lg.precision(shape, kappa, 2)
+    data = rng.choice(576, 10, replace=False)
+    values = rng.standard_normal(10)
+    mean = lg.conditional_mean(q, data, values)
+    draws = [lg.simulate_spectral(shape, kappa, 2, rng=rng).ravel() for _ in range(2)]
+    residuals = [z - lg.conditional_mean(q, data, z[data]) for z in draws]
+    mixed = mean + np.cos(0.7) * residuals[0] + np.sin(0.7) * residuals[1]
+    assert np.allclose(mixed[data], values)
 
 
 def test_alpha_one_never_overshoots_and_alpha_two_does():

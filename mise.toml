@@ -15,13 +15,9 @@ run = "uv run --no-sync pytest -q"
 depends = ["sync"]
 run = ["uv run --no-sync ruff check .", "uv run --no-sync ruff format --check ."]
 
-[tasks.figures]
+[tasks.animate]
 depends = ["sync"]
-run = "for f in chapters/*/run.py; do uv run --no-sync python \"$f\" || exit 1; done"
+run = "uv run --no-sync python animate.py"
 
 [tasks.verify]
 depends = ["lint", "test"]
-
-[tasks.preview]
-description = "Render README and chapters into one page and serve it on http://localhost:8791/_site/"
-run = ["uv run --with markdown python tools/preview.py", "python3 -m http.server 8791 --bind 127.0.0.1"]
