@@ -61,6 +61,7 @@ that hold it to account.
 mise run test      # the theory checks, about half a minute
 mise run figures   # redraws every chapters/*/*.png
 mise run verify    # lint, then test
+mise run preview   # one page with every chapter, on http://localhost:8791/_site/
 ```
 
 Without mise: `uv sync`, then `uv run pytest` and
