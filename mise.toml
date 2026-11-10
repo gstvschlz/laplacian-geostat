@@ -1,0 +1,23 @@
+[tools]
+uv = "0.12"
+
+[env]
+UV_PYTHON = "3.13"
+
+[tasks.sync]
+run = "uv sync -q"
+
+[tasks.test]
+depends = ["sync"]
+run = "uv run --no-sync pytest -q"
+
+[tasks.lint]
+depends = ["sync"]
+run = ["uv run --no-sync ruff check .", "uv run --no-sync ruff format --check ."]
+
+[tasks.figures]
+depends = ["sync"]
+run = "for f in chapters/*/run.py; do uv run --no-sync python \"$f\" || exit 1; done"
+
+[tasks.verify]
+depends = ["lint", "test"]
