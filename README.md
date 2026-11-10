@@ -1,5 +1,7 @@
 # The Laplacian in geostatistics
 
+Interactive explainer: <https://gstvschlz.com/laplacian/>
+
 One animation of what the Laplacian is and what it does in geostatistical
 estimation and simulation: [`laplacian.mp4`](laplacian.mp4), 57 seconds.
 
@@ -27,12 +29,17 @@ covariance) `Q = τ(κ² I + L)^α`, with `L` the Laplacian: `κ` is the range,
 ## Run it
 
 ```sh
+npm run serve      # the interactive explainer at http://localhost:8000
+npm test           # runs the Node.js unit checks in test/
 mise run animate   # rewrites laplacian.mp4, about two minutes; needs ffmpeg
 mise run verify    # lint, then the theory checks
 ```
 
 ## Layout
 
+- `index.html`, `style.css`, `web/` — the six-step explainer, no build step;
+  published by GitHub Pages from `main`. Theme and fonts follow gstvschlz.com.
+- `test/` — Node.js unit checks for `web/laplacian.js` and `web/walker.js`.
 - `animate.py` — the six scenes.
 - `src/lapgeo/` — the Laplacian, the precision, draws, conditioning and the
   cellular rule the scenes use.
